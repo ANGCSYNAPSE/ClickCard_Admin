@@ -54,6 +54,7 @@ export interface UserDetails extends AdminUser {
   subscriptionPlan?: string;
   subscriptionStartDate?: string;
   subscriptionEndDate?: string;
+  businessProfiles?: BusinessProfile[];
 }
 
 export interface UserAnalytics {
@@ -70,6 +71,30 @@ export interface UserAnalytics {
     country: string;
     count: number;
   }>;
+}
+
+export interface BusinessDocument {
+  id: string;
+  name: string;
+  url: string;
+  mimeType?: string;
+  size?: number;
+  uploadedAt?: string;
+}
+
+export interface BusinessProfile {
+  id: number;
+  company_name: string;
+  category?: string | null;
+  description?: string | null;
+  website?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  address?: string | null;
+  logo_url?: string | null;
+  documents?: BusinessDocument[];
+  status?: string;
+  created_at?: string;
 }
 
 export interface AdminLead {
