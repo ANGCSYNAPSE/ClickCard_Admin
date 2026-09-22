@@ -12,19 +12,8 @@ import {
   Edit2,
   Copy,
   Building2,
-  Globe,
-  MapPin,
-  FileText,
-  Download,
 } from "lucide-react";
 import Link from "next/link";
-
-const formatBytes = (bytes?: number) => {
-  if (!bytes) return "";
-  const kb = bytes / 1024;
-  if (kb < 1024) return `${kb.toFixed(0)} KB`;
-  return `${(kb / 1024).toFixed(1)} MB`;
-};
 
 export default function UserDetailsPage() {
   const router = useRouter();
@@ -497,83 +486,31 @@ export default function UserDetailsPage() {
               ) : (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                   {user.businessProfiles.map((biz: any) => (
-                    <div
+                    <Link
                       key={biz.id}
-                      className="p-4 bg-paper-soft dark:bg-dark rounded-lg border border-line/30 dark:border-line/10"
+                      href={`/users/${id}/business/${biz.id}`}
+                      className="flex items-center gap-3 p-4 bg-paper-soft dark:bg-dark rounded-lg border border-line/30 dark:border-line/10 hover:border-primary/50 hover:bg-white dark:hover:bg-dark-hover transition-colors"
                     >
-                      <div className="flex items-start gap-3">
+                      {biz.logo_url ? (
+                        <img
+                          src={biz.logo_url}
+                          alt={biz.company_name}
+                          className="h-10 w-10 shrink-0 rounded-lg object-cover"
+                        />
+                      ) : (
                         <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-primary/10 text-primary dark:bg-primary/20">
                           <Building2 size={18} />
                         </span>
-                        <div className="min-w-0 flex-1">
-                          <p className="font-semibold text-ink dark:text-white truncate">{biz.company_name}</p>
-                          {biz.category && (
-                            <span className="inline-flex items-center mt-1 px-2 py-0.5 rounded text-xs font-medium bg-blue-50 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400">
-                              {biz.category}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-
-                      {biz.description && (
-                        <p className="mt-2 text-xs text-muted dark:text-white/60 line-clamp-2">{biz.description}</p>
                       )}
-
-                      <div className="mt-2 space-y-1">
-                        {biz.website && (
-                          <p className="flex items-center gap-1.5 text-xs text-muted dark:text-white/60 truncate">
-                            <Globe size={11} /> {biz.website}
-                          </p>
-                        )}
-                        {biz.email && (
-                          <p className="flex items-center gap-1.5 text-xs text-muted dark:text-white/60 truncate">
-                            <Mail size={11} /> {biz.email}
-                          </p>
-                        )}
-                        {biz.phone && (
-                          <p className="flex items-center gap-1.5 text-xs text-muted dark:text-white/60">
-                            <Phone size={11} /> {biz.phone}
-                          </p>
-                        )}
-                        {biz.address && (
-                          <p className="flex items-center gap-1.5 text-xs text-muted dark:text-white/60 truncate">
-                            <MapPin size={11} /> {biz.address}
-                          </p>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-semibold text-ink dark:text-white truncate">{biz.company_name}</p>
+                        {biz.category && (
+                          <span className="inline-flex items-center mt-1 px-2 py-0.5 rounded text-xs font-medium bg-blue-50 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400">
+                            {biz.category}
+                          </span>
                         )}
                       </div>
-
-                      <div className="mt-3 pt-3 border-t border-line/30 dark:border-line/10">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-muted dark:text-white/40 mb-1.5">
-                          Documents ({biz.documents?.length || 0})
-                        </p>
-                        {biz.documents && biz.documents.length > 0 ? (
-                          <div className="space-y-1">
-                            {biz.documents.map((doc: any) => (
-                              <a
-                                key={doc.id}
-                                href={doc.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="flex items-center gap-2 px-2 py-1.5 rounded bg-white dark:bg-dark-hover hover:bg-paper dark:hover:bg-dark transition-colors"
-                              >
-                                <FileText size={12} className="shrink-0 text-muted dark:text-white/50" />
-                                <span className="min-w-0 flex-1 truncate text-xs text-ink dark:text-white">
-                                  {doc.name}
-                                </span>
-                                {doc.size ? (
-                                  <span className="shrink-0 text-[10px] text-muted dark:text-white/40">
-                                    {formatBytes(doc.size)}
-                                  </span>
-                                ) : null}
-                                <Download size={11} className="shrink-0 text-muted dark:text-white/50" />
-                              </a>
-                            ))}
-                          </div>
-                        ) : (
-                          <p className="text-xs text-muted dark:text-white/40">No documents uploaded.</p>
-                        )}
-                      </div>
-                    </div>
+                    </Link>
                   ))}
                 </div>
               )}
