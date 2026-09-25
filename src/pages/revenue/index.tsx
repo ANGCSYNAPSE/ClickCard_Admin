@@ -312,7 +312,7 @@ export default function RevenuePage() {
         <div className="lg:col-span-1 bg-white dark:bg-dark-hover rounded-xl p-6 border border-line/50 dark:border-line/10">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-bold text-ink dark:text-white">Revenue Trend</h3>
-            <select className="px-2 py-1 text-xs bg-paper-soft dark:bg-dark rounded border border-line/50 dark:border-line/10">
+            <select className="px-2 py-1 text-xs bg-paper-soft dark:bg-dark text-ink dark:text-white rounded border border-line/50 dark:border-line/10">
               <option>30 Days</option>
               <option>60 Days</option>
               <option>90 Days</option>
@@ -371,7 +371,7 @@ export default function RevenuePage() {
         <div className="bg-white dark:bg-dark-hover rounded-xl p-6 border border-line/50 dark:border-line/10">
           <div className="flex items-center justify-between mb-4">
             <h3 className="font-bold text-ink dark:text-white">Revenue by Plan</h3>
-            <select className="px-2 py-1 text-xs bg-paper-soft dark:bg-dark rounded border border-line/50 dark:border-line/10">
+            <select className="px-2 py-1 text-xs bg-paper-soft dark:bg-dark text-ink dark:text-white rounded border border-line/50 dark:border-line/10">
               <option>Monthly</option>
               <option>Yearly</option>
             </select>

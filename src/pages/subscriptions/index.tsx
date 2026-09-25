@@ -402,8 +402,8 @@ export default function SubscriptionsPage() {
                     onClick={() => handleTogglePlan(plan.id)}
                     className={`flex-1 px-3 py-2 rounded-lg font-medium transition-colors ${
                       plan.status === "active"
-                        ? "bg-yellow-50 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 hover:bg-yellow-100"
-                        : "bg-green-50 dark:bg-green-500/20 text-green-700 dark:text-green-400 hover:bg-green-100"
+                        ? "bg-yellow-50 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 hover:bg-yellow-100 dark:hover:bg-yellow-500/30"
+                        : "bg-green-50 dark:bg-green-500/20 text-green-700 dark:text-green-400 hover:bg-green-100 dark:hover:bg-green-500/30"
                     }`}
                   >
                     {plan.status === "active" ? "Disable" : "Enable"}

@@ -36,6 +36,51 @@ body {
   overflow-x: clip;
 }
 
+/* ── Dark theme ──────────────────────────── */
+/* color-scheme makes native controls (select options, date pickers,
+   checkboxes, scrollbars) render in dark too. */
+.dark {
+  color-scheme: dark;
+  --bg: #1a1a1a;
+  --bg-soft: #262626;
+  --bg-tint: #2e2e2e;
+  --text: #ffffff;
+  --text-light: rgba(255, 255, 255, 0.7);
+  --text-muted: rgba(255, 255, 255, 0.5);
+  --border: rgba(236, 223, 199, 0.12);
+}
+
+/* Recharts: grid, axes and tooltips use hard-coded light colors */
+.dark .recharts-cartesian-grid line {
+  stroke: rgba(255, 255, 255, 0.08);
+}
+.dark .recharts-cartesian-axis-line,
+.dark .recharts-cartesian-axis-tick-line {
+  stroke: rgba(255, 255, 255, 0.25);
+}
+.dark .recharts-cartesian-axis-tick-value,
+.dark .recharts-legend-item-text {
+  fill: rgba(255, 255, 255, 0.6);
+}
+.dark .recharts-legend-item-text {
+  color: rgba(255, 255, 255, 0.75) !important;
+}
+.dark .recharts-default-tooltip {
+  background-color: #262626 !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  border-radius: 8px;
+  color: #fff;
+}
+.dark .recharts-tooltip-label {
+  color: #fff;
+}
+.dark .recharts-tooltip-cursor {
+  fill: rgba(255, 255, 255, 0.06);
+}
+.dark .recharts-sector {
+  stroke: #262626;
+}
+
 @layer components {
 /* ── Buttons ─────────────────────────────── */
 .btn {

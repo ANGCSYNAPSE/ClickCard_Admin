@@ -32,7 +32,7 @@ const analytics = [
     icon: Download,
     change: 17.6,
     trend: "up",
-    color: "text-yellow-600",
+    color: "text-yellow-600 dark:text-yellow-400",
     bgColor: "bg-yellow/20",
   },
   {

@@ -427,7 +427,7 @@ export default function UserDetailsPage() {
                         }`}>
                           <CheckCircle size={14} /> {user.moderation_status?.toUpperCase() || "N/A"}
                         </span>
-                        <select className="px-2 py-1 text-xs bg-paper-soft dark:bg-dark rounded border border-line/50 dark:border-line/10">
+                        <select className="px-2 py-1 text-xs bg-paper-soft dark:bg-dark text-ink dark:text-white rounded border border-line/50 dark:border-line/10">
                           <option>Approved</option>
                           <option>Pending</option>
                           <option>Rejected</option>

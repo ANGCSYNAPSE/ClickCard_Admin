@@ -303,7 +303,7 @@ export default function ModerationPage() {
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="text-xs px-2 py-1 bg-paper-soft dark:bg-dark rounded border border-line/50 dark:border-line/10"
+                className="text-xs px-2 py-1 bg-paper-soft dark:bg-dark text-ink dark:text-white rounded border border-line/50 dark:border-line/10"
               >
                 <option value="newest">Newest First</option>
                 <option value="oldest">Oldest First</option>

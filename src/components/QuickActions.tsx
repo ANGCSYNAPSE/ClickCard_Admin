@@ -28,8 +28,8 @@ export default function QuickActions({
       count: blockedUsers,
       icon: AlertCircle,
       href: "/users",
-      color: "text-red-600",
-      bgColor: "bg-red-50",
+      color: "text-red-600 dark:text-red-400",
+      bgColor: "bg-red-50 dark:bg-red-500/10",
     },
     {
       label: "Support Leads",
