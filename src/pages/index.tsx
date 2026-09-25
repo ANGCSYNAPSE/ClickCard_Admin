@@ -85,7 +85,7 @@ export default function AdminDashboard() {
             notificationService.adminRegistrations()
               .catch((err) => {
                 console.error("❌ Failed to fetch admin notifications:", err.message, err.response?.data);
-                return { data: { items: [] } } as any;
+                return [];
               })
           ]);
           clearTimeout(timeoutId);
@@ -93,7 +93,7 @@ export default function AdminDashboard() {
 
           const users = usersResponse.data || [];
           const plans = plansResponse || [];
-          const notifs = notificationsResponse.data?.items || [];
+          const notifs = notificationsResponse;
 
           console.log("📊 Admin Dashboard Data Loaded:");
           console.log("  Users:", users.length);
@@ -120,7 +120,7 @@ export default function AdminDashboard() {
             setTopPlans([]);
           } else {
             // Generate chart data from actual users
-            const recentUsers = users.slice(0, 10);
+            const recentUsers = users.slice(0, 5);
             setRecentActivity(
               recentUsers.map((user: any, idx: number) => ({
                 id: user.id,
@@ -132,10 +132,10 @@ export default function AdminDashboard() {
               }))
             );
 
-            // Set notifications - log to verify
-            console.log("✅ Setting notifications:", notifs.length, "items");
-            setNotifications(notifs.slice(0, 10));
           }
+
+          // Registrations are independent of the users list — always show them
+          setNotifications(notifs.slice(0, 10));
 
           // Process and display plans
           if (plans.length > 0) {

@@ -17,6 +17,10 @@ export const USER_ROUTES = {
 } as const;
 
 export const NOTIFICATION_ROUTES = {
+  list: "/api/notifications",
+  unreadCount: "/api/notifications/unread-count",
+  read: (id: number) => `/api/notifications/${id}/read`,
+  readAll: "/api/notifications/read-all",
   adminRegistrations: "/api/notifications/admin/registrations",
 } as const;
 

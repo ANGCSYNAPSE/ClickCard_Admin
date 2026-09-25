@@ -1,4 +1,4 @@
-import { ReactNode, useState, useEffect } from "react";
+import { ReactNode, useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import {
   LayoutDashboard,
@@ -14,20 +14,32 @@ import {
   HelpCircle,
   Wallet,
   UserRoundCheck,
-  Gift
+  Gift,
+  UserPlus,
+  MessageSquare,
+  Flag,
+  Megaphone,
 } from "lucide-react";
 import { useRouter } from "next/router";
 import AdminThemeToggle from "./AdminThemeToggle";
 import { tokenService } from "@/lib/tokenService";
+import {
+  notificationService,
+  notificationHref,
+  timeAgo,
+  type AppNotification,
+} from "@/services/notificationService";
 
-interface Notification {
-  id: string;
-  title: string;
-  message: string;
-  icon: string;
-  read: boolean;
-  timestamp?: string;
-}
+/** Backend has no socket reach on serverless, so poll for new notifications. */
+const NOTIFICATION_POLL_MS = 30_000;
+
+const NOTIFICATION_ICONS: Record<string, { icon: typeof Bell; className: string }> = {
+  new_user: { icon: UserPlus, className: "bg-green-100 text-green-600 dark:bg-green-500/20 dark:text-green-400" },
+  new_lead: { icon: MessageSquare, className: "bg-secondary/10 text-secondary dark:bg-secondary/20 dark:text-[#22b8b0]" },
+  moderation: { icon: Flag, className: "bg-primary/10 text-primary dark:bg-primary/20 dark:text-brand-300" },
+  announcement: { icon: Megaphone, className: "bg-yellow-100 text-yellow-700 dark:bg-yellow-500/20 dark:text-yellow-400" },
+};
+const DEFAULT_NOTIFICATION_ICON = { icon: Bell, className: "bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400" };
 
 interface AdminShellProps {
   children: ReactNode;
@@ -38,8 +50,53 @@ export default function AdminShell({ children }: AdminShellProps) {
   const [adminEmail, setAdminEmail] = useState("Admin User");
   const [notificationOpen, setNotificationOpen] = useState(false);
   const [theme, setTheme] = useState<"light" | "dark">("light");
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [notificationsLoading, setNotificationsLoading] = useState(true);
+  const [notificationsError, setNotificationsError] = useState(false);
+  const notificationRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+
+  const fetchNotifications = useCallback(async () => {
+    if (!tokenService.isAuthenticated()) return;
+    try {
+      const { items, unread } = await notificationService.list();
+      setNotifications(items);
+      setUnreadCount(unread);
+      setNotificationsError(false);
+    } catch (err) {
+      console.error("Failed to fetch notifications:", err);
+      setNotificationsError(true);
+    } finally {
+      setNotificationsLoading(false);
+    }
+  }, []);
+
+  // Initial load, periodic polling, and refresh when the tab regains focus
+  useEffect(() => {
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, NOTIFICATION_POLL_MS);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") fetchNotifications();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+    return () => {
+      clearInterval(interval);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [fetchNotifications]);
+
+  // Close the dropdown on outside click
+  useEffect(() => {
+    if (!notificationOpen) return;
+    const onClick = (e: MouseEvent) => {
+      if (notificationRef.current && !notificationRef.current.contains(e.target as Node)) {
+        setNotificationOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, [notificationOpen]);
 
   useEffect(() => {
     // Get admin email from localStorage
@@ -92,20 +149,35 @@ export default function AdminShell({ children }: AdminShellProps) {
     }
   };
 
-  const markNotificationAsRead = (id: string) => {
-    setNotifications(
-      notifications.map((notif) =>
-        notif.id === id ? { ...notif, read: true } : notif
-      )
-    );
+  const openNotification = (notif: AppNotification) => {
+    if (!notif.is_read) {
+      // Optimistic update; refetch to reconcile if the request fails
+      setNotifications((prev) =>
+        prev.map((n) => (n.id === notif.id ? { ...n, is_read: true } : n))
+      );
+      setUnreadCount((c) => Math.max(0, c - 1));
+      notificationService.markRead(notif.id).catch((err) => {
+        console.error("Failed to mark notification as read:", err);
+        fetchNotifications();
+      });
+    }
+    const href = notificationHref(notif);
+    if (href) {
+      setNotificationOpen(false);
+      router.push(href);
+    }
   };
 
-  const clearAllNotifications = () => {
-    setNotifications([]);
-    setNotificationOpen(false);
+  const markAllNotificationsRead = async () => {
+    setNotifications((prev) => prev.map((n) => ({ ...n, is_read: true })));
+    setUnreadCount(0);
+    try {
+      await notificationService.markAllRead();
+    } catch (err) {
+      console.error("Failed to mark all notifications as read:", err);
+      fetchNotifications();
+    }
   };
-
-  const unreadCount = notifications.filter((n) => !n.read).length;
 
   const menuItems = [
     { name: "Dashboard", icon: LayoutDashboard, href: "/" },
@@ -159,7 +231,7 @@ export default function AdminShell({ children }: AdminShellProps) {
                 href={item.href}
                 className={`flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                   active
-                    ? "bg-primary/10 text-primary dark:bg-primary/20"
+                    ? "bg-primary/10 text-primary dark:bg-primary/20 dark:text-brand-300"
                     : "text-ink dark:text-white/70 hover:bg-paper-soft dark:hover:bg-dark"
                 }`}
               >
@@ -198,14 +270,20 @@ export default function AdminShell({ children }: AdminShellProps) {
               {/* Theme Toggle */}
               <AdminThemeToggle theme={theme} onToggle={toggleTheme} />
 
-              <div className="relative">
+              <div className="relative" ref={notificationRef}>
                 <button
-                  onClick={() => setNotificationOpen(!notificationOpen)}
+                  onClick={() => {
+                    if (!notificationOpen) fetchNotifications();
+                    setNotificationOpen(!notificationOpen);
+                  }}
+                  aria-label={`Notifications${unreadCount ? ` (${unreadCount} unread)` : ""}`}
                   className="p-2 hover:bg-paper-soft dark:hover:bg-dark rounded-lg transition-colors relative"
                 >
                   <Bell size={20} className="text-ink dark:text-white" />
                   {unreadCount > 0 && (
-                    <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                    <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-bold leading-[18px] text-center rounded-full">
+                      {unreadCount > 99 ? "99+" : unreadCount}
+                    </span>
                   )}
                 </button>
 
@@ -228,57 +306,82 @@ export default function AdminShell({ children }: AdminShellProps) {
 
                     {/* Notifications List */}
                     <div className="max-h-96 overflow-y-auto">
-                      {notifications.length === 0 ? (
+                      {notificationsLoading && notifications.length === 0 ? (
+                        <div className="p-8 text-center">
+                          <p className="text-sm text-muted dark:text-white/60">Loading…</p>
+                        </div>
+                      ) : notificationsError && notifications.length === 0 ? (
+                        <div className="p-8 text-center">
+                          <p className="text-sm text-muted dark:text-white/60 mb-3">
+                            Couldn&apos;t load notifications
+                          </p>
+                          <button
+                            onClick={fetchNotifications}
+                            className="text-sm text-primary dark:text-brand-300 font-medium hover:underline"
+                          >
+                            Try again
+                          </button>
+                        </div>
+                      ) : notifications.length === 0 ? (
                         <div className="p-8 text-center">
                           <p className="text-sm text-muted dark:text-white/60">
                             No notifications yet
                           </p>
                         </div>
                       ) : (
-                        notifications.map((notif) => (
-                          <div
-                            key={notif.id}
-                            onClick={() => markNotificationAsRead(notif.id)}
-                            className={`p-4 border-b border-line/20 dark:border-line/10 cursor-pointer transition-colors ${
-                              notif.read
-                                ? "bg-white dark:bg-dark-hover hover:bg-paper-soft dark:hover:bg-dark"
-                                : "bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20"
-                            }`}
-                          >
-                            <div className="flex gap-3">
-                              <span className="text-2xl flex-shrink-0">
-                                {notif.icon}
-                              </span>
-                              <div className="flex-1 min-w-0">
-                                <div className="flex items-start justify-between gap-2">
-                                  <p className="font-semibold text-sm text-ink dark:text-white">
-                                    {notif.title}
-                                  </p>
-                                  {!notif.read && (
-                                    <span className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-1"></span>
+                        notifications.map((notif) => {
+                          const { icon: Icon, className: iconClass } =
+                            NOTIFICATION_ICONS[notif.type] ?? DEFAULT_NOTIFICATION_ICON;
+                          return (
+                            <button
+                              key={notif.id}
+                              onClick={() => openNotification(notif)}
+                              className={`w-full text-left p-4 border-b border-line/20 dark:border-line/10 transition-colors ${
+                                notif.is_read
+                                  ? "bg-white dark:bg-dark-hover hover:bg-paper-soft dark:hover:bg-dark"
+                                  : "bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20"
+                              }`}
+                            >
+                              <div className="flex gap-3">
+                                <span className={`w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0 ${iconClass}`}>
+                                  <Icon size={18} />
+                                </span>
+                                <div className="flex-1 min-w-0">
+                                  <div className="flex items-start justify-between gap-2">
+                                    <p className={`text-sm text-ink dark:text-white ${notif.is_read ? "font-medium" : "font-semibold"}`}>
+                                      {notif.title}
+                                    </p>
+                                    {!notif.is_read && (
+                                      <span className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-1.5"></span>
+                                    )}
+                                  </div>
+                                  {notif.message && (
+                                    <p className="text-xs text-muted dark:text-white/60 mt-1 break-words">
+                                      {notif.message}
+                                    </p>
                                   )}
+                                  <p
+                                    className="text-xs text-muted dark:text-white/50 mt-2"
+                                    title={new Date(notif.created_at).toLocaleString()}
+                                  >
+                                    {timeAgo(notif.created_at)}
+                                  </p>
                                 </div>
-                                <p className="text-xs text-muted dark:text-white/50 mt-1">
-                                  {notif.message}
-                                </p>
-                                <p className="text-xs text-muted dark:text-white/40 mt-2">
-                                  {notif.timestamp}
-                                </p>
                               </div>
-                            </div>
-                          </div>
-                        ))
+                            </button>
+                          );
+                        })
                       )}
                     </div>
 
                     {/* Footer */}
-                    {notifications.length > 0 && (
+                    {unreadCount > 0 && (
                       <div className="p-4 border-t border-line/30 dark:border-line/10">
                         <button
-                          onClick={clearAllNotifications}
-                          className="w-full px-4 py-2 text-sm text-primary font-medium hover:bg-paper-soft dark:hover:bg-dark rounded-lg transition-colors"
+                          onClick={markAllNotificationsRead}
+                          className="w-full px-4 py-2 text-sm text-primary dark:text-brand-300 font-medium hover:bg-paper-soft dark:hover:bg-dark rounded-lg transition-colors"
                         >
-                          Clear all
+                          Mark all as read
                         </button>
                       </div>
                     )}
