@@ -13,7 +13,8 @@ import {
   Handshake,
   HelpCircle,
   Wallet,
-  UserRoundCheck
+  UserRoundCheck,
+  Gift
 } from "lucide-react";
 import { useRouter } from "next/router";
 import AdminThemeToggle from "./AdminThemeToggle";
@@ -112,6 +113,7 @@ export default function AdminShell({ children }: AdminShellProps) {
     { name: "Revenue", icon: Wallet, href: "/revenue" },
     { name: "Subscriptions", icon: CreditCard, href: "/subscriptions" },
     { name: "Analytics", icon: BarChart3, href: "/analytics" },
+    { name: "Referrals", icon: Gift, href: "/referrals" },
     { name: "Moderation", icon: UserRoundCheck, href: "/moderation" },
     { name: "Support", icon: HelpCircle, href: "/support" },
     { name: "Team", icon: Handshake, href: "/team" },

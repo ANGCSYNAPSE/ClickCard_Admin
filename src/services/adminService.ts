@@ -1,4 +1,17 @@
 import { apiClient } from "@/lib/axiosClient";
+import { REFERRAL_ROUTES } from "@/apiRoutes";
+
+export interface AdminReferral {
+  id: string;
+  referrer_id: string;
+  referred_id: string;
+  status: string;
+  created_at: string;
+  referrer_email: string;
+  referrer_username: string;
+  referred_email: string;
+  referred_username: string;
+}
 
 export interface AdminStats {
   totalUsers: number;
@@ -180,6 +193,17 @@ export const adminService = {
     } catch (err) {
       console.warn("Users endpoint not available");
       return { data: [], total: 0, page, limit };
+    }
+  },
+
+  // Referrals
+  getReferrals: async (): Promise<AdminReferral[]> => {
+    try {
+      const { data } = await apiClient.get(REFERRAL_ROUTES.all);
+      return data.data || [];
+    } catch (err) {
+      console.warn("Referrals endpoint not available");
+      return [];
     }
   },
 

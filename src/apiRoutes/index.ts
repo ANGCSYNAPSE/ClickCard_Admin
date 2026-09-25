@@ -20,6 +20,10 @@ export const NOTIFICATION_ROUTES = {
   adminRegistrations: "/api/notifications/admin/registrations",
 } as const;
 
+export const REFERRAL_ROUTES = {
+  all: "/api/referrals/all",
+} as const;
+
 export const ADMIN_ROUTES = {
   stats: "/api/admin/stats",
   revenue: "/api/admin/revenue",
